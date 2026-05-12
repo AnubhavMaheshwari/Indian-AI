@@ -107,73 +107,67 @@ const Chatbot = ({ messages, setMessages }) => {
     }
   };
 
-  const renderStructuredMessage = (message) => {
-    if (!message.structured) return message.text;
-
-    const sections = [
-      { key: "health", title: "Health", color: "#4a90e2" },
-      { key: "family", title: "Family", color: "#50c878" },
-      { key: "dream", title: "Dreams", color: "#e67e22" },
-      { key: "society", title: "Society", color: "#9b59b6" }
-    ];
-
-    return (
-      <div className="structured-response">
-        {sections.map(section => {
-          const content = message.text[section.key];
-          if (!content) {
-            return null;
-          }
-
+  return (
+    <div className="relative w-full min-h-full flex flex-col items-center pt-[5.5rem] px-0 pb-[6.5rem] box-border max-md:pt-0 max-sm:pb-[7rem]">
+      {messages.length === 0 && (
+        <div className="absolute top-[42%] max-md:top-[36%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(100%,720px)] text-center pointer-events-none">
+          <div className="inline-flex items-center justify-center mb-3 [perspective:900px]">
+            <div className="w-[78px] h-[78px] inline-flex items-center justify-center rounded-full overflow-hidden bg-white/5 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+              <img
+                src="/indianai.png"
+                alt="AI Avatar"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+          <div className="m-0 text-[clamp(2.1rem,4vw,3.55rem)] max-sm:text-[2rem] font-extrabold leading-[1.05] text-[#3f7cff]">Hey There! I am I₹uhh!</div>
+          <div className="mt-[0.6rem] text-[clamp(1rem,1.55vw,1.3rem)] text-[#f2f4f8]/80">What's holding you back today?</div>
+        </div>
+      )}
+    
+      <div className="w-[min(100%,780px)] flex-1 flex flex-col gap-[0.85rem] overflow-y-auto overflow-x-hidden px-[0.25rem] pb-2 box-border [scrollbar-width:none] [-ms-overflow-style:none] chat-messages">
+        {messages.map((msg, index) => {
+          let baseClasses = "w-fit max-w-[min(78%,680px)] p-[1rem_1.1rem] rounded-[1.15rem] leading-[1.5] box-border break-words max-[1100px]:max-w-[86%] max-sm:max-w-[92%]";
+          let senderClasses = msg.sender === "user" ? "self-end bg-gradient-to-br from-[#3f7cff] to-[#2454d8] shadow-[0_10px_30px_rgba(37,99,235,0.28)]" : "self-start bg-white/5 border border-white/10 backdrop-blur-[16px]";
+          let structuredClasses = msg.structured ? "!w-full !max-w-full !p-[0.9rem]" : "";
+          
           return (
-            <div key={section.key} className="response-box" style={{ borderColor: section.color }}>
-              <h3 style={{ color: section.color }}>{section.title}</h3>
-              <p>{content.analysis || content.perspective || content.story || content.framework}</p>
-              {content.key_points && content.key_points.length > 0 && (
-                <ul>
-                  {content.key_points.map((point, index) => (
-                    <li key={index}>{point}</li>
-                  ))}
-                </ul>
+            <div
+              key={`${msg.sender}-${index}`}
+              className={`${baseClasses} ${senderClasses} ${structuredClasses}`}
+            >
+              {msg.structured ? (
+                <div className="grid grid-cols-[repeat(2,minmax(260px,1fr))] gap-[0.9rem] w-full max-[760px]:grid-cols-1">
+                  {["health", "family", "dream", "society"].map((key) => {
+                    const content = msg.text[key];
+                    if (!content) return null;
+                    const sections = { health: { title: "Health", color: "#4a90e2" }, family: { title: "Family", color: "#50c878" }, dream: { title: "Dreams", color: "#e67e22" }, society: { title: "Society", color: "#9b59b6" } };
+                    const section = sections[key];
+                    return (
+                      <div key={key} className="min-w-0 w-full p-[0.9rem] border border-white/20 rounded-[0.95rem] bg-white/5 backdrop-blur-[10px]" style={{ borderColor: section.color }}>
+                        <h3 className="m-[0_0_0.4rem] text-[0.98rem]" style={{ color: section.color }}>{section.title}</h3>
+                        <p className="text-[0.9rem] leading-[1.45] m-0">{content.analysis || content.perspective || content.story || content.framework}</p>
+                        {content.key_points && content.key_points.length > 0 && (
+                          <ul className="m-[0.55rem_0_0] pl-4 text-[0.9rem] leading-[1.45]">
+                            {content.key_points.map((point, idx) => (
+                              <li key={idx}>{point}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                msg.text
               )}
             </div>
           );
         })}
-      </div>
-    );
-  };
-
-  return (
-    <div className="chatbot-interface">
-      {messages.length === 0 && (
-        <div className="initial-text">
-          <div className="hero-logo-trigger">
-            <div className="logo-container">
-              <img
-                src="/indianai.png"
-                alt="AI Avatar"
-                className="mic-image"
-              />
-            </div>
-          </div>
-          <div className="initial-text-main">Hey There! I am I₹uhh!</div>
-          <div className="initial-text-sub">What's holding you back today?</div>
-        </div>
-      )}
-    
-      <div className="chat-messages">
-        {messages.map((msg, index) => (
-          <div
-            key={`${msg.sender}-${index}`}
-            className={`message ${msg.sender} ${msg.structured ? "structured-message" : ""}`}
-          >
-            {msg.structured ? renderStructuredMessage(msg) : msg.text}
-          </div>
-        ))}
 
         {isLoading && (
-          <div className="message bot typing">
-            <span className="typing-dots">•••</span>
+          <div className="w-fit max-w-[min(78%,680px)] p-[1rem_1.1rem] rounded-[1.15rem] leading-[1.5] box-border break-words self-start bg-white/5 border border-white/10 backdrop-blur-[16px]">
+            <span className="tracking-[0.25em]">•••</span>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -185,4 +179,3 @@ const Chatbot = ({ messages, setMessages }) => {
 };
 
 export default Chatbot;
-
